@@ -1,0 +1,18 @@
+#!/bin/bash  -ex
+
+: ' docker install using shell script
+by parivallal 
+on 29.01.2019 '
+
+
+sudo apt update
+docker pull hello-world
+docker run hello-world
+sudo usermod -aG docker parivallal
+docker pull ubuntu
+docker images
+docker run -itd ubuntu
+#HOW TO PUSH DOCKER
+docker tag ubuntu:latest parivikram28/firstdocker:ubuntu
+docker push parivikram28/firstdocker:ubuntu
+
