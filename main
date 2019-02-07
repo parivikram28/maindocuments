@@ -1,0 +1,23 @@
+ls
+du -hs *
+id
+rm pari
+touch vallal muthu
+cp vallal muthu
+mkdir some
+rm -r muthu
+rmdir -r some
+history
+chmod +x some
+sudo apt update
+uname
+pwd
+hostname
+ps
+whoami
+top
+free
+
+
+ 
+
