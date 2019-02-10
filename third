@@ -1,0 +1,8 @@
+#!/bin/bash  -e
+
+: 'devops
+by parivallal
+on 10.02.2019 '
+
+
+for x in {1..10};do touch file$x;done
