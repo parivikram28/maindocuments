@@ -1,3 +1,3 @@
 # maindocuments
-to study purpose
-to study purpose
+to studysss purpose
+to studysss purpose
