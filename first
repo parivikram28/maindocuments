@@ -6,5 +6,5 @@ by parivallal
 on 10.02.2019 '
 
 
-for x in {1..10};do pwd;done
+for x in {1..10};do ifconfig;done
 
