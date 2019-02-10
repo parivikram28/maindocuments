@@ -2,4 +2,4 @@
 
 
 
-for x in {1..5};do pwd;done
+for x in {1..5};do uname;done
