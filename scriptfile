@@ -1,0 +1,12 @@
+#!/bin/bash
+
+
+
+echo "enter a name"
+read fname
+if ( $fname )
+then
+echo "the file name has been obtained"
+else
+echo "the file is not have"
+fi
