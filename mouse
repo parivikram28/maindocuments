@@ -1,0 +1,7 @@
+#!/bin/bash  -e 
+
+: ' moving mouse 
+by parivallal 
+on 23.02.2019 '
+
+while true do;for x in {1..999};do xdotool mousemove $x;for y in {1..999};do xdotool mousemove $y;done ;done
