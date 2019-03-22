@@ -1,0 +1,8 @@
+#!bin/bash  -e
+
+: ' this is sample
+by parivallal
+on 18.03.2019 '
+
+for x in {1..10};do ls;done
+
